@@ -354,7 +354,7 @@ export default function Home() {
           </div>
         </div>
         <div style={{ flex: 1 }} />
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginRight: "5px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginRight: "8px" }}>
           <button
             style={{
               background: "#c2e7ff",
