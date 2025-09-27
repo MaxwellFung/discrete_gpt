@@ -90,6 +90,25 @@ export default function Home() {
   const lineHeight = 24;
   const maxLines = 10;
 
+  // 🔹 Restore saved state from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("discreteGPTState");
+    if (saved) {
+      const { title, prompt, response, submitStatus, wordCount, showIntro } = JSON.parse(saved);
+      if (title) setTitle(title);
+      if (prompt) setPrompt(prompt);
+      if (response) setResponse(response);
+      if (submitStatus) setSubmitStatus(submitStatus);
+      if (wordCount) setWordCount(wordCount);
+    }
+  }, []);
+
+  // 🔹 Save state to localStorage whenever it changes
+  useEffect(() => {
+    const state = { title, prompt, response, submitStatus, wordCount, showIntro };
+    localStorage.setItem("discreteGPTState", JSON.stringify(state));
+  }, [title, prompt, response, submitStatus, wordCount, showIntro]);
+
   // Animate dots
   useEffect(() => {
     let interval;
@@ -182,21 +201,40 @@ export default function Home() {
   const getStatusMessage = () => {
     if (submitStatus === "generating") {
       return (
-        <div style={{ color: "#1a73e8", marginTop: "8px", fontFamily: "'Google Sans', Arial, sans-serif" }}>
-          {wordCount} words generated - check next page{" "}
-          <span style={{ color: "#1a73e8" }}>(or press Ctrl + R to terminate)</span>
+        <div
+          style={{
+            color: "#1a73e8",
+            marginTop: "8px",
+            fontFamily: "'Google Sans', Arial, sans-serif",
+          }}
+        >
+          {wordCount > 0
+            ? `${wordCount} words generated - check next page`
+            : `Generating${".".repeat(Math.min(dotCount + 1, 3))}`}
+          <span style={{ color: "#1a73e8" }}>
+            {" "}
+            (or press Ctrl + X to terminate)
+          </span>
         </div>
       );
     }
     if (submitStatus === "done") {
       return (
-        <div style={{ color: "#1a73e8", marginTop: "8px", fontFamily: "'Google Sans', Arial, sans-serif" }}>
-          Done, scroll to next page! Ctrl + R to reset
+        <div
+          style={{
+            color: "#1a73e8",
+            marginTop: "8px",
+            fontFamily: "'Google Sans', Arial, sans-serif",
+          }}
+        >
+          Done, scroll to next page! Ctrl + X to reset
         </div>
       );
     }
     return null;
   };
+  
+  
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -205,7 +243,7 @@ export default function Home() {
         e.preventDefault();
         handleSubmit(true);
       }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "r") {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "x") {
         e.preventDefault();
         if (submitStatus === "generating" && abortController) {
           abortController.abort();
@@ -281,7 +319,7 @@ export default function Home() {
               Write your prompt on the first page, then press <b>Ctrl + Enter</b> to submit.
             </p>
             <p style={{ marginBottom: "20px" }}>
-              Your response will appear on the next page. Use <b>Ctrl + R</b> to reset or terminate.
+              Your response will appear on the next page. Use <b>Ctrl + X</b> to reset or terminate.
             </p>
             <button
               onClick={() => setShowIntro(false)}
