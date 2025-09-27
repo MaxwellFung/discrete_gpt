@@ -25,14 +25,6 @@ export const metadata = {
     description: "DiscreteGPT is a discrete chat AI styled like Google Docs.",
     url: "https://discretegpt.com",
     siteName: "Discrete GPT",
-    images: [
-      {
-        url: "/logo.png",
-        width: 1200,
-        height: 630,
-        alt: "Discrete GPT",
-      },
-    ],
     type: "website",
   },
   twitter: {
