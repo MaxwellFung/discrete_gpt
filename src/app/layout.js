@@ -21,7 +21,7 @@ export const metadata = {
     "discrete ai"
   ],
   openGraph: {
-    title: "Discrete GPT – Discrete ChatGPT & Discrete AI",
+    title: "Discrete GPT – Discrete LLM Interface",
     description: "DiscreteGPT is a discrete chat AI styled like Google Docs.",
     url: "https://discretegpt.com",
     siteName: "Discrete GPT",
