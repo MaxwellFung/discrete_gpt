@@ -19,7 +19,6 @@ function CodeBlock({ className, children, ...props }) {
   };
 
   if (!match) {
-    // Inline code
     return (
       <code
         className={className}
@@ -37,7 +36,6 @@ function CodeBlock({ className, children, ...props }) {
     );
   }
 
-  // Block code
   return (
     <div style={{ position: "relative" }}>
       <button
@@ -57,15 +55,7 @@ function CodeBlock({ className, children, ...props }) {
           fontFamily: "'Google Sans', Arial, sans-serif",
         }}
       >
-        {copied ? (
-          <>
-            ✅ <span>Copied</span>
-          </>
-        ) : (
-          <>
-            📋 <span>Copy Code</span>
-          </>
-        )}
+        {copied ? <>✅ <span>Copied</span></> : <>📋 <span>Copy Code</span></>}
       </button>
       <SyntaxHighlighter
         language={match[1]}
@@ -90,7 +80,7 @@ export default function Home() {
   const [submitStatus, setSubmitStatus] = useState("idle");
   const [dotCount, setDotCount] = useState(0);
   const [wordCount, setWordCount] = useState(0);
-  const [showIntro, setShowIntro] = useState(true);
+  const [showIntro, setShowIntro] = useState(true); // 🔹 Intro modal state
   const [abortController, setAbortController] = useState(null);
 
   const secondPageRef = useRef(null);
@@ -144,7 +134,6 @@ export default function Home() {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let accumulatedText = "";
 
       while (true) {
         const { done, value } = await reader.read();
@@ -157,27 +146,21 @@ export default function Home() {
           if (line.startsWith("data: ") && line !== "data: [DONE]") {
             try {
               const jsonData = JSON.parse(line.slice(6));
-              if (jsonData.choices && jsonData.choices[0].delta.content) {
+              if (jsonData.choices?.[0]?.delta?.content) {
                 const newContent = jsonData.choices[0].delta.content;
-                accumulatedText += newContent;
                 setResponse((prev) => prev + newContent);
               }
-            } catch {
-              // ignore incomplete JSON
-            }
+            } catch {}
           }
         }
       }
 
       setSubmitStatus("done");
-      setTimeout(() => {
-        scrollToNextPage();
-      }, 100);
+      setTimeout(() => scrollToNextPage(), 100);
     } catch (error) {
       if (error.name === "AbortError") {
         setResponse((prev) => prev + "\n\n[Terminated early]");
       } else {
-        console.error("API call failed:", error);
         setResponse(`Error: Failed to generate response. ${error.message}`);
       }
       setSubmitStatus("done");
@@ -242,8 +225,7 @@ export default function Home() {
     textarea.style.height = "auto";
     const newHeight = Math.min(textarea.scrollHeight, lineHeight * maxLines);
     textarea.style.height = `${newHeight}px`;
-    textarea.style.overflowY =
-      textarea.scrollHeight > lineHeight * maxLines ? "auto" : "hidden";
+    textarea.style.overflowY = textarea.scrollHeight > lineHeight * maxLines ? "auto" : "hidden";
   };
 
   return (
@@ -266,6 +248,60 @@ export default function Home() {
         />
       </Head>
 
+      {/* 🔹 Intro Modal */}
+      {showIntro && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 2000,
+            fontFamily: "'Google Sans', Arial, sans-serif",
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              padding: "32px",
+              borderRadius: "12px",
+              width: "400px",
+              textAlign: "center",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+              fontFamily: "'Google Sans', Arial, sans-serif",
+            }}
+          >
+            <h2 style={{ marginBottom: "16px" }}>Welcome to Discrete GPT</h2>
+            <p style={{ marginBottom: "12px" }}>
+              Write your prompt on the first page, then press <b>Ctrl + Enter</b> to submit.
+            </p>
+            <p style={{ marginBottom: "20px" }}>
+              Your response will appear on the next page. Use <b>Ctrl + R</b> to reset or terminate.
+            </p>
+            <button
+              onClick={() => setShowIntro(false)}
+              style={{
+                padding: "10px 20px",
+                background: "#1a73e8",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: 500,
+              }}
+            >
+              Get Started
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top bar */}
       <div
         style={{
@@ -277,24 +313,15 @@ export default function Home() {
           flexShrink: 0,
           display: "flex",
           alignItems: "center",
-          padding: "10px 10px", // 🔹 more breathing room
+          padding: "10px 10px",
         }}
       >
-        {/* Logo */}
         <img
           src="/logo.png"
           alt="Logo"
-          style={{
-            width: "32px",
-            height: "32px",
-            marginRight: "10px",
-            objectFit: "contain",
-          }}
+          style={{ width: "35px", height: "35px", marginRight: "10px", objectFit: "contain" }}
         />
-
-        {/* Title + Menus (stacked vertically) */}
         <div style={{ display: "flex", flexDirection: "column" }}>
-          {/* Title */}
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -306,11 +333,10 @@ export default function Home() {
               width: "260px",
               color: "#202124",
               fontFamily: "'Google Sans', Arial, sans-serif",
-              marginBottom: "2px", // separates title from menus
-              marginLeft: "-7.5px"
+              marginBottom: "2px",
+              marginLeft: "-7.5px",
             }}
           />
-          {/* Menus */}
           <div
             style={{
               display: "flex",
@@ -327,17 +353,12 @@ export default function Home() {
             <span>Format</span>
           </div>
         </div>
-
-        {/* Spacer pushes right-side controls to far right */}
         <div style={{ flex: 1 }} />
-
-        {/* Right Actions (center aligned vertically now) */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginRight: "5px" }}>
-          {/* Share button */}
           <button
             style={{
-              background: "#c2e7ff",         // 🔹 Light blue
-              color: "#001d35",              // 🔹 Dark text (Google’s blue-black)
+              background: "#c2e7ff",
+              color: "#001d35",
               border: "none",
               borderRadius: "20px",
               padding: "10px 18px",
@@ -350,12 +371,8 @@ export default function Home() {
               gap: "6px",
             }}
           >
-
-            Share
-            {/* Right dropdown arrow */}
-            <span style={{ fontSize: "12px", marginLeft: "4px", marginTop: "-3px" }}>▾</span>
+            Share <span style={{ fontSize: "12px", marginLeft: "4px", marginTop: "-3px" }}>▾</span>
           </button>
-
           <div
             style={{
               width: "34px",
@@ -375,8 +392,6 @@ export default function Home() {
         </div>
       </div>
 
-
-
       {/* Workspace */}
       <div
         style={{
@@ -388,7 +403,7 @@ export default function Home() {
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
-          {/* Page 1: Prompt */}
+          {/* Page 1 */}
           <div
             style={{
               width: "792px",
@@ -398,15 +413,9 @@ export default function Home() {
               border: "1px solid #eee",
               boxShadow: "0 1px 2px rgba(0,0,0,.06), 0 2px 12px rgba(0,0,0,.06)",
               outline: "none",
-              position: "relative",
               cursor: "text",
-              fontFamily: "inherit",
             }}
-            onClick={() => {
-              if (textareaRef.current) {
-                textareaRef.current.focus();
-              }
-            }}
+            onClick={() => textareaRef.current?.focus()}
           >
             <div style={{ padding: "96px", minHeight: "100%" }}>
               <textarea
@@ -432,7 +441,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Page 2: Response */}
+          {/* Page 2 */}
           <div ref={secondPageRef}>
             <div
               style={{
@@ -443,7 +452,6 @@ export default function Home() {
                 border: "1px solid #eee",
                 boxShadow: "0 1px 2px rgba(0,0,0,.06), 0 2px 12px rgba(0,0,0,.06)",
                 outline: "none",
-                fontFamily: "inherit",
               }}
             >
               <div
@@ -463,16 +471,8 @@ export default function Home() {
                     rehypePlugins={[rehypeKatex]}
                     components={{
                       code: CodeBlock,
-                      h1: ({ children }) => (
-                        <h1 style={{ fontSize: "16pt", fontWeight: "bold" }}>
-                          {children}
-                        </h1>
-                      ),
-                      h2: ({ children }) => (
-                        <h2 style={{ fontSize: "14pt", fontWeight: "bold" }}>
-                          {children}
-                        </h2>
-                      ),
+                      h1: ({ children }) => <h1 style={{ fontSize: "16pt", fontWeight: "bold" }}>{children}</h1>,
+                      h2: ({ children }) => <h2 style={{ fontSize: "14pt", fontWeight: "bold" }}>{children}</h2>,
                     }}
                   />
                 ) : (
