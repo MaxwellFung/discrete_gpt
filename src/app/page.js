@@ -213,7 +213,7 @@ export default function Home() {
             : `Generating${".".repeat(Math.min(dotCount + 1, 3))}`}
           <span style={{ color: "#1a73e8" }}>
             {" "}
-            (or press Ctrl + X to terminate)
+            (or press Ctrl + R to terminate)
           </span>
         </div>
       );
@@ -227,7 +227,7 @@ export default function Home() {
             fontFamily: "'Google Sans', Arial, sans-serif",
           }}
         >
-          Done, scroll to next page! Ctrl + X to reset
+          Done, scroll to next page! Ctrl + R to reset
         </div>
       );
     }
@@ -243,7 +243,7 @@ export default function Home() {
         e.preventDefault();
         handleSubmit(true);
       }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "x") {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "r") {
         e.preventDefault();
         if (submitStatus === "generating" && abortController) {
           abortController.abort();
@@ -319,7 +319,7 @@ export default function Home() {
               Write your prompt on the first page, then press <b>Ctrl + Enter</b> to submit.
             </p>
             <p style={{ marginBottom: "20px" }}>
-              Your response will appear on the next page. Use <b>Ctrl + X</b> to reset or terminate.
+              Your response will appear on the next page. Use <b>Ctrl + R</b> to reset or terminate.
             </p>
             <button
               onClick={() => setShowIntro(false)}
