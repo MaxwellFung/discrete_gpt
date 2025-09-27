@@ -28,7 +28,7 @@ function CodeBlock({ className, children, ...props }) {
           padding: "2px 4px",
           borderRadius: "4px",
           fontSize: "8pt",
-          fontFamily: "Courier New, monospace",
+          fontFamily: "'Roboto Mono', monospace",
         }}
         {...props}
       >
@@ -54,6 +54,7 @@ function CodeBlock({ className, children, ...props }) {
           display: "flex",
           alignItems: "center",
           gap: "4px",
+          fontFamily: "'Google Sans', Arial, sans-serif",
         }}
       >
         {copied ? (
@@ -72,6 +73,7 @@ function CodeBlock({ className, children, ...props }) {
         customStyle={{
           fontSize: "8pt",
           borderRadius: "6px",
+          fontFamily: "'Roboto Mono', monospace",
         }}
         {...props}
       >
@@ -85,7 +87,7 @@ export default function Home() {
   const [title, setTitle] = useState("Discrete GPT");
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
-  const [submitStatus, setSubmitStatus] = useState("idle"); // idle, generating, done
+  const [submitStatus, setSubmitStatus] = useState("idle");
   const [dotCount, setDotCount] = useState(0);
   const [wordCount, setWordCount] = useState(0);
   const [showIntro, setShowIntro] = useState(true);
@@ -121,16 +123,15 @@ export default function Home() {
 
   const handleSubmit = async (force = false) => {
     if (!prompt.trim()) return;
-  
     if (submitStatus === "generating" && !force) return;
-  
+
     setSubmitStatus("generating");
     setResponse("");
     setWordCount(0);
-  
+
     const controller = new AbortController();
     setAbortController(controller);
-  
+
     try {
       const response = await fetch("/api/deepseek_query", {
         method: "POST",
@@ -138,20 +139,20 @@ export default function Home() {
         body: JSON.stringify({ query: prompt }),
         signal: controller.signal,
       });
-  
+
       if (!response.ok) throw new Error(`API error: ${response.status}`);
-  
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let accumulatedText = "";
-  
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-  
+
         const chunk = decoder.decode(value);
         const lines = chunk.split("\n");
-  
+
         for (const line of lines) {
           if (line.startsWith("data: ") && line !== "data: [DONE]") {
             try {
@@ -167,7 +168,7 @@ export default function Home() {
           }
         }
       }
-  
+
       setSubmitStatus("done");
       setTimeout(() => {
         scrollToNextPage();
@@ -182,8 +183,6 @@ export default function Home() {
       setSubmitStatus("done");
     }
   };
-  
-  
 
   const handleReset = () => {
     setPrompt("");
@@ -200,17 +199,15 @@ export default function Home() {
   const getStatusMessage = () => {
     if (submitStatus === "generating") {
       return (
-        <div style={{ color: "#1a73e8", marginTop: "8px" }}>
+        <div style={{ color: "#1a73e8", marginTop: "8px", fontFamily: "'Google Sans', Arial, sans-serif" }}>
           {wordCount} words generated - check next page{" "}
-          <span style={{ color: "#1a73e8" }}>
-            (or press Ctrl + R to terminate)
-          </span>
+          <span style={{ color: "#1a73e8" }}>(or press Ctrl + R to terminate)</span>
         </div>
       );
     }
     if (submitStatus === "done") {
       return (
-        <div style={{ color: "#1a73e8", marginTop: "8px" }}>
+        <div style={{ color: "#1a73e8", marginTop: "8px", fontFamily: "'Google Sans', Arial, sans-serif" }}>
           Done, scroll to next page! Ctrl + R to reset
         </div>
       );
@@ -223,7 +220,7 @@ export default function Home() {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
-        handleSubmit(true); // pass a flag to "force requery"
+        handleSubmit(true);
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "r") {
         e.preventDefault();
@@ -238,11 +235,9 @@ export default function Home() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [submitStatus, prompt, abortController]);
 
-
   // Auto-resize textarea
   const handleTextareaChange = (e) => {
     setPrompt(e.target.value);
-
     const textarea = e.target;
     textarea.style.height = "auto";
     const newHeight = Math.min(textarea.scrollHeight, lineHeight * maxLines);
@@ -255,7 +250,7 @@ export default function Home() {
     <div
       ref={containerRef}
       style={{
-        fontFamily: "Roboto, Arial, sans-serif",
+        fontFamily: "'Google Sans', Arial, sans-serif",
         color: "#202124",
         background: "#f8f9fa",
         height: "100vh",
@@ -265,7 +260,10 @@ export default function Home() {
       }}
     >
       <Head>
-        <title>{title} - Google Docs (lookalike)</title>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Google+Sans:wght@400;500;700&display=swap"
+          rel="stylesheet"
+        />
       </Head>
 
       {/* Top bar */}
@@ -274,24 +272,29 @@ export default function Home() {
           position: "sticky",
           top: 0,
           zIndex: 50,
-          display: "flex",
-          alignItems: "center",
-          padding: "8px 12px",
           background: "#fff",
           borderBottom: "1px solid #dadce0",
           flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          padding: "10px 10px", // 🔹 more breathing room
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div
-            aria-label="Docs logo"
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "6px",
-              background: "#1a73e8",
-            }}
-          />
+        {/* Logo */}
+        <img
+          src="/logo.png"
+          alt="Logo"
+          style={{
+            width: "32px",
+            height: "32px",
+            marginRight: "10px",
+            objectFit: "contain",
+          }}
+        />
+
+        {/* Title + Menus (stacked vertically) */}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {/* Title */}
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -300,12 +303,79 @@ export default function Home() {
               border: "1px solid transparent",
               borderRadius: "4px",
               padding: "2px 6px",
-              width: "240px",
+              width: "260px",
               color: "#202124",
+              fontFamily: "'Google Sans', Arial, sans-serif",
+              marginBottom: "2px", // separates title from menus
+              marginLeft: "-7.5px"
             }}
           />
+          {/* Menus */}
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              fontSize: "12px",
+              color: "#202124",
+              fontFamily: "'Google Sans', Arial, sans-serif",
+            }}
+          >
+            <span>File</span>
+            <span>Edit</span>
+            <span>View</span>
+            <span>Insert</span>
+            <span>Format</span>
+          </div>
+        </div>
+
+        {/* Spacer pushes right-side controls to far right */}
+        <div style={{ flex: 1 }} />
+
+        {/* Right Actions (center aligned vertically now) */}
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginRight: "5px" }}>
+          {/* Share button */}
+          <button
+            style={{
+              background: "#c2e7ff",         // 🔹 Light blue
+              color: "#001d35",              // 🔹 Dark text (Google’s blue-black)
+              border: "none",
+              borderRadius: "20px",
+              padding: "10px 18px",
+              fontSize: "14px",
+              fontWeight: 500,
+              fontFamily: "'Google Sans', Arial, sans-serif",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+
+            Share
+            {/* Right dropdown arrow */}
+            <span style={{ fontSize: "12px", marginLeft: "4px", marginTop: "-3px" }}>▾</span>
+          </button>
+
+          <div
+            style={{
+              width: "34px",
+              height: "34px",
+              borderRadius: "50%",
+              background: "#F28B82",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              color: "#fff",
+              fontWeight: "bold",
+              fontSize: "16px",
+            }}
+          >
+            M
+          </div>
         </div>
       </div>
+
+
 
       {/* Workspace */}
       <div
@@ -326,11 +396,11 @@ export default function Home() {
               margin: "0 auto",
               background: "#fff",
               border: "1px solid #eee",
-              boxShadow:
-                "0 1px 2px rgba(0,0,0,.06), 0 2px 12px rgba(0,0,0,.06)",
+              boxShadow: "0 1px 2px rgba(0,0,0,.06), 0 2px 12px rgba(0,0,0,.06)",
               outline: "none",
               position: "relative",
               cursor: "text",
+              fontFamily: "inherit",
             }}
             onClick={() => {
               if (textareaRef.current) {
@@ -371,17 +441,18 @@ export default function Home() {
                 margin: "0 auto",
                 background: "#fff",
                 border: "1px solid #eee",
-                boxShadow:
-                  "0 1px 2px rgba(0,0,0,.06), 0 2px 12px rgba(0,0,0,.06)",
+                boxShadow: "0 1px 2px rgba(0,0,0,.06), 0 2px 12px rgba(0,0,0,.06)",
                 outline: "none",
+                fontFamily: "inherit",
               }}
             >
               <div
                 style={{
                   padding: "96px",
-                  fontFamily: "'Times New Roman', serif",
+                  fontFamily: "inherit",
                   fontSize: "12pt",
-                  lineHeight: "1.5",
+                  lineHeight: "1.6",
+                  letterSpacing: "0.3px",
                   color: "#000",
                 }}
               >
