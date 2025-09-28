@@ -132,35 +132,42 @@ export default function Home() {
 
   const handleSubmit = async (force = false) => {
     if (!prompt.trim()) return;
-    if (submitStatus === "generating" && !force) return;
-
+  
+    // Abort previous request if any
+    if (abortController) {
+      abortController.abort();
+    }
+  
+    // Setup new controller
+    const newController = new AbortController();
+    setAbortController(newController);
+  
+    // Reset states before new generation
     setSubmitStatus("generating");
     setResponse("");
     setWordCount(0);
-
-    const controller = new AbortController();
-    setAbortController(controller);
-
+    setDotCount(0);
+  
     try {
       const response = await fetch("/api/deepseek_query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: prompt }),
-        signal: controller.signal,
+        signal: newController.signal,
       });
-
+  
       if (!response.ok) throw new Error(`API error: ${response.status}`);
-
+  
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-
+  
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
+  
         const chunk = decoder.decode(value);
         const lines = chunk.split("\n");
-
+  
         for (const line of lines) {
           if (line.startsWith("data: ") && line !== "data: [DONE]") {
             try {
@@ -169,11 +176,13 @@ export default function Home() {
                 const newContent = jsonData.choices[0].delta.content;
                 setResponse((prev) => prev + newContent);
               }
-            } catch {}
+            } catch {
+              // ignore parse errors
+            }
           }
         }
       }
-
+  
       setSubmitStatus("done");
       setTimeout(() => scrollToNextPage(), 100);
     } catch (error) {
@@ -185,6 +194,8 @@ export default function Home() {
       setSubmitStatus("done");
     }
   };
+  
+  
 
   const handleReset = () => {
     setPrompt("");
